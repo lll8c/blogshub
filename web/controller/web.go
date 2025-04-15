@@ -3,49 +3,60 @@ package controller
 import (
 	"bloghub/domain"
 	"bloghub/service"
+	"bloghub/utils/ginx"
+	"fmt"
 	"github.com/gin-gonic/gin"
 )
 
 func LoginController(c *gin.Context) {
 	var account domain.Account
 	if err := c.ShouldBind(&account); err != nil {
-		ResponseError(c, ParamErr)
+		ginx.ResponseError(c, ginx.ParamErr)
 		return
 	}
 	if account.Username == "" || account.Password == "" || account.Role == "" {
-		ResponseError(c, ParamLostErr)
+		ginx.ResponseError(c, ginx.ParamLostErr)
 		return
 	}
-	var err error
 	if account.Role == "ADMIN" {
-		err = service.LoginAdmin(&account)
-	} else if account.Role == "USER" {
-		err = service.LoginUser(&account)
+		admin, err := service.LoginAdmin(&account)
+		if err != nil {
+			fmt.Println(err)
+			ginx.ResponseError(c, err)
+			return
+		}
+		ginx.ResponseSuccess(c, admin)
 	}
-	if err != nil {
-		ResponseError(c, SystemErr)
+	if account.Role == "USER" {
+		user, err := service.LoginUser(&account)
+		if err != nil {
+			ginx.ResponseError(c, err)
+			return
+		}
+		ginx.ResponseSuccess(c, user)
 	}
-	ResponseSuccess(c)
 }
 
-func SignUpController(c *gin.Context) {
+func RegisterController(c *gin.Context) {
 	var account domain.Account
 	if err := c.ShouldBind(&account); err != nil {
-		ResponseError(c, ParamErr)
+		ginx.ResponseError(c, ginx.ParamErr)
 		return
 	}
 	if account.Username == "" || account.Password == "" || account.Role == "" {
-		ResponseError(c, ParamLostErr)
+		ginx.ResponseError(c, ginx.ParamLostErr)
 		return
 	}
 	var err error
-	if account.Role == "ADMIN" {
-		err = service.LoginAdmin(&account)
-	} else if account.Role == "USER" {
-		err = service.LoginUser(&account)
+	//只能注册普通用户
+	if account.Role != "USER" {
+		ginx.ResponseError(c, ginx.ParamErr)
 	}
+	err = service.RegisterUser(&account)
 	if err != nil {
-		ResponseError(c, SystemErr)
+		fmt.Println(err)
+		ginx.ResponseError(c, err)
+		return
 	}
-	ResponseSuccess(c)
+	ginx.ResponseSuccess(c, nil)
 }

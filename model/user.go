@@ -14,13 +14,16 @@ type User struct {
 	Birth    string `gorm:"column:birth"`
 }
 
+func (*User) TableName() string {
+	return "user"
+}
+
 func InsertUser(u *User) error {
 	return db.Create(&u).Error
 }
 
 func GetUserByName(username string) (user *User, err error) {
-	user = &User{}
-	err = db.Where("username = ?", username).First(user).Error
+	err = db.Where("username = ?", username).First(&user).Error
 	return
 }
 

@@ -8,6 +8,11 @@ import (
 
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
+	//登录注册
+	r.POST("/login", controller.LoginController)
+	r.POST("/register", controller.RegisterController)
+
+	//r.Use(midderware.JwtMidderware)
 	//用户管理
 	user := r.Group("/user")
 	user.POST("/add", controller.AddUserHandler)
@@ -18,8 +23,6 @@ func SetupRouter() *gin.Engine {
 	user.POST("/selectAll", controller.GetUserListHandler)
 	user.POST("/selectPage", controller.UpdateUserHandler)
 
-	//登录注册
-	r.POST("/login", controller.LoginController)
 	r.GET("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "pong")
 	})
