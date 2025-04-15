@@ -69,40 +69,39 @@ func UpdateUserHandler(c *gin.Context) {
 }
 
 func GetUserHandler(c *gin.Context) {
-	var user domain.User
-	if err := c.ShouldBind(&user); err != nil {
+	idStr := c.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
 		ginx.ResponseError(c, ginx.ParamErr)
-		return
 	}
-	if err := service.AddUser(&user); err != nil {
+	user, err := service.GetUser(id)
+	if err != nil {
 		ginx.ResponseError(c, err)
 		return
 	}
-	ginx.ResponseSuccess(c, nil)
+	ginx.ResponseSuccess(c, user)
 }
 
 func GetUserListHandler(c *gin.Context) {
-	var user domain.User
-	if err := c.ShouldBind(&user); err != nil {
-		ginx.ResponseError(c, ginx.ParamErr)
-		return
-	}
-	if err := service.AddUser(&user); err != nil {
+	users, err := service.GetUserList()
+	if err != nil {
 		ginx.ResponseError(c, err)
 		return
 	}
-	ginx.ResponseSuccess(c, nil)
+	ginx.ResponseSuccess(c, users)
 }
 
+// GetUserByPageHandler 分页获取用户列表
 func GetUserByPageHandler(c *gin.Context) {
-	var user domain.User
-	if err := c.ShouldBind(&user); err != nil {
-		ginx.ResponseError(c, ginx.ParamErr)
-		return
-	}
-	if err := service.AddUser(&user); err != nil {
+	pageNumStr := c.DefaultQuery("pageNum", "1")
+	pageSizeStr := c.DefaultQuery("pageSize", "10")
+
+	pageNumInt, _ := strconv.Atoi(pageNumStr)
+	pageSizeInt, _ := strconv.Atoi(pageSizeStr)
+	users, err := service.GetUserByPage(pageNumInt, pageSizeInt)
+	if err != nil {
 		ginx.ResponseError(c, err)
 		return
 	}
-	ginx.ResponseSuccess(c, nil)
+	ginx.ResponseSuccess(c, users)
 }

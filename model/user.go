@@ -45,7 +45,12 @@ func GetUserById(id int64) (user *User, err error) {
 	return
 }
 
-func GetUserList() (list []User, err error) {
+func GetUserList() (list []*User, err error) {
 	err = db.Find(&list).Error
+	return
+}
+
+func GetUserByPage(page int, pageSize int) (list []*User, err error) {
+	err = db.Limit(pageSize).Offset((page - 1) * pageSize).Find(&list).Error
 	return
 }

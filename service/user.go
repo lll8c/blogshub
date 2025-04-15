@@ -88,6 +88,7 @@ func BatchDeleteUser(ids []int64) error {
 
 func UpdateUser(user *domain.User) error {
 	u := &model.User{
+		Id:       user.Id,
 		Username: user.Username,
 		Name:     user.Name,
 		Phone:    user.Phone,
@@ -97,6 +98,7 @@ func UpdateUser(user *domain.User) error {
 		Info:     user.Info,
 		Birth:    user.Birth,
 	}
+	fmt.Println(u)
 	return model.UpdateUserById(u)
 }
 
@@ -119,6 +121,28 @@ func GetUser(id int64) (*domain.User, error) {
 
 func GetUserList() ([]*domain.User, error) {
 	us, err := model.GetUserList()
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*domain.User, 0)
+	for _, u := range us {
+		res = append(res, &domain.User{
+			Username: u.Username,
+
+			Name:   u.Name,
+			Phone:  u.Phone,
+			Email:  u.Email,
+			Avatar: u.Avatar,
+			Sex:    u.Sex,
+			Info:   u.Info,
+			Birth:  u.Birth,
+		})
+	}
+	return res, nil
+}
+
+func GetUserByPage(page int, size int) ([]*domain.User, error) {
+	us, err := model.GetUserByPage(page, size)
 	if err != nil {
 		return nil, err
 	}
