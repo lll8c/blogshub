@@ -68,13 +68,38 @@ func UpdateCategoryHandler(c *gin.Context) {
 }
 
 func GetCategoryHandler(c *gin.Context) {
-
+	idStr := c.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		ginx.ResponseError(c, ginx.ParamErr)
+	}
+	user, err := service.GetCategory(id)
+	if err != nil {
+		ginx.ResponseError(c, err)
+		return
+	}
+	ginx.ResponseSuccess(c, user)
 }
 
 func GetCategoryListHandler(c *gin.Context) {
-
+	users, err := service.GetAllCategory()
+	if err != nil {
+		ginx.ResponseError(c, err)
+		return
+	}
+	ginx.ResponseSuccess(c, users)
 }
 
-func GetCategoryByPageHandler(context *gin.Context) {
+func GetCategoryByPageHandler(c *gin.Context) {
+	pageNumStr := c.DefaultQuery("pageNum", "1")
+	pageSizeStr := c.DefaultQuery("pageSize", "10")
 
+	pageNumInt, _ := strconv.Atoi(pageNumStr)
+	pageSizeInt, _ := strconv.Atoi(pageSizeStr)
+	users, err := service.GetCategoryByPage(pageNumInt, pageSizeInt)
+	if err != nil {
+		ginx.ResponseError(c, err)
+		return
+	}
+	ginx.ResponseSuccess(c, users)
 }

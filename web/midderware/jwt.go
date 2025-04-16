@@ -14,6 +14,8 @@ func JwtMidderware(c *gin.Context) {
 	if tokenStr == "" {
 		any, ok := c.Get(TOKEN)
 		if !ok {
+			ginx.ResponseError(c, ginx.TokenCheckErr)
+			c.Abort()
 			return
 		}
 		tokenStr = any.(string)
@@ -26,10 +28,13 @@ func JwtMidderware(c *gin.Context) {
 	})
 	if err != nil {
 		ginx.ResponseError(c, ginx.TokenInvalidErr)
+		c.Abort()
 		return
 	}
 	if token == nil || !token.Valid {
 		ginx.ResponseError(c, ginx.TokenInvalidErr)
+		c.Abort()
 		return
 	}
+	c.Set("user", claims)
 }

@@ -1,8 +1,8 @@
 package model
 
 type Category struct {
-	Id   int64  `gorm:"column:id"`
-	name string `gorm:"column:name"`
+	Id   int64  `gorm:"column:id" json:"id"`
+	Name string `gorm:"column:name" json:"name"`
 }
 
 func (*Category) TableName() string {
@@ -40,5 +40,10 @@ func BatchDeleteCategoryByIds(ids []int64) error {
 }
 
 func UpdateCategory(d *Category) error {
-	return db.Save(d).Error
+	return db.Save(&d).Error
+}
+
+func GetCategoryByPage(page int, pageSize int) (list []*Category, err error) {
+	err = db.Limit(pageSize).Offset((page - 1) * pageSize).Find(&list).Error
+	return
 }
