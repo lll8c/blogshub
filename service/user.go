@@ -1,7 +1,6 @@
 package service
 
 import (
-	"bloghub/domain"
 	"bloghub/model"
 	"bloghub/utils/ginx"
 	"errors"
@@ -10,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func LoginUser(a *domain.Account) (*domain.User, error) {
+func LoginUser(a *model.Account) (*model.User, error) {
 	user, err := model.GetUserByName(a.Username)
 	if err != nil {
 		//用户不存在
@@ -24,33 +23,20 @@ func LoginUser(a *domain.Account) (*domain.User, error) {
 	if user.Password != a.Password {
 		return nil, ginx.UserAccountErr
 	}
-	accountUser := &domain.User{
-		Id:       user.Id,
-		Username: user.Username,
-		Password: user.Password,
-		Name:     user.Name,
-		Avatar:   user.Avatar,
-		Role:     user.Role,
-		Sex:      user.Sex,
-		Phone:    user.Phone,
-		Email:    user.Email,
-		Info:     user.Info,
-		Birth:    user.Birth,
-	}
-	accountUser.Token, err = ginx.CreateToken(user.Id, user.Role)
+	user.Token, err = ginx.CreateToken(user.Id, user.Role)
 	if err != nil {
 		return nil, err
 	}
-	return accountUser, nil
+	return user, nil
 }
 
-func RegisterUser(a *domain.Account) error {
-	user := &domain.User{}
+func RegisterUser(a *model.Account) error {
+	user := &model.User{}
 	copier.Copy(user, a)
 	return AddUser(user)
 }
 
-func AddUser(user *domain.User) error {
+func AddUser(user *model.User) error {
 	//先判断用户是否存在，避免插表
 	if user.Username == "" {
 		return errors.New("用户名不能为空")
@@ -68,11 +54,9 @@ func AddUser(user *domain.User) error {
 	if user.Name == "" {
 		user.Name = user.Username
 	}
-	u := &model.User{}
-	copier.Copy(u, user)
 	//设置为默认用户角色
-	u.Role = domain.USER
-	if err := model.InsertUser(u); err != nil {
+	user.Role = model.USER
+	if err := model.InsertUser(user); err != nil {
 		return err
 	}
 	return nil
@@ -86,79 +70,47 @@ func BatchDeleteUser(ids []int64) error {
 	return model.BatchDeleteUserByIds(ids)
 }
 
-func UpdateUser(user *domain.User) error {
-	u := &model.User{
-		Id:       user.Id,
-		Username: user.Username,
-		Name:     user.Name,
-		Phone:    user.Phone,
-		Email:    user.Email,
-		Avatar:   user.Avatar,
-		Sex:      user.Sex,
-		Info:     user.Info,
-		Birth:    user.Birth,
-	}
-	fmt.Println(u)
-	return model.UpdateUserById(u)
+func UpdateUser(user *model.User) error {
+	return model.UpdateUserById(user)
 }
 
-func GetUser(id int64) (*domain.User, error) {
+func GetUser(id int64) (*model.User, error) {
 	u, err := model.GetUserById(id)
 	if err != nil {
 		return nil, err
 	}
-	return &domain.User{
-		Username: u.Username,
-		Name:     u.Name,
-		Phone:    u.Phone,
-		Email:    u.Email,
-		Avatar:   u.Avatar,
-		Sex:      u.Sex,
-		Info:     u.Info,
-		Birth:    u.Birth,
-	}, nil
+	return u, nil
 }
 
-func GetUserList() ([]*domain.User, error) {
-	us, err := model.GetUserList()
+func GetUserList(user *model.User) ([]*model.User, error) {
+	list, err := model.GetUserList(user)
 	if err != nil {
 		return nil, err
 	}
-	res := make([]*domain.User, 0)
-	for _, u := range us {
-		res = append(res, &domain.User{
-			Username: u.Username,
-
-			Name:   u.Name,
-			Phone:  u.Phone,
-			Email:  u.Email,
-			Avatar: u.Avatar,
-			Sex:    u.Sex,
-			Info:   u.Info,
-			Birth:  u.Birth,
-		})
-	}
-	return res, nil
+	return list, nil
 }
 
-func GetUserByPage(page int, size int) ([]*domain.User, error) {
-	us, err := model.GetUserByPage(page, size)
+func GetUserByPage(user *model.User, page int, size int) ([]*model.User, error) {
+	list, err := model.GetUserByPage(user, page, size)
 	if err != nil {
 		return nil, err
 	}
-	res := make([]*domain.User, 0)
-	for _, u := range us {
-		res = append(res, &domain.User{
-			Username: u.Username,
+	return list, nil
+}
 
-			Name:   u.Name,
-			Phone:  u.Phone,
-			Email:  u.Email,
-			Avatar: u.Avatar,
-			Sex:    u.Sex,
-			Info:   u.Info,
-			Birth:  u.Birth,
-		})
+func UpdateUserPassword(account *model.Account) error {
+	//先查用户是否存在
+	user, err := model.GetUserById(account.Id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ginx.UserNotExistErr
+		}
+		return err
 	}
-	return res, nil
+	if account.Password != user.Password {
+		return ginx.ParamPasswordErr
+	}
+	user.Password = account.NewPassword
+	err = model.UpdateUserById(user)
+	return err
 }

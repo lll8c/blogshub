@@ -23,11 +23,11 @@ func GetByActivityIdAndUserId(activityId int64, userId int64) (*ActivitySign, er
 	return &activitySign, err
 }
 
-func GetActivitySignList(a *ActivitySign) (list []*ActivitySign, err error) {
+func GetActivitySignByPage(a *ActivitySign, page, size int) (list []*ActivitySign, err error) {
 	query := db.Model(&a).Select("ActivitySign.*, activity.name as ActivityName, user.name as UserName")
 	query = db.Joins("left join activity on activity_sign.activity_id = activity.id")
 	query = db.Joins("left join user on activity_sign.UserId = user.Id")
-	err = query.Find(&list).Error
+	err = query.Limit(page).Offset((page - 1) * size).Find(&list).Error
 	return
 }
 
@@ -35,6 +35,10 @@ func DeleteActivitySignById(id int64) error {
 	return db.Where("id = ?", id).Delete(&ActivitySign{}).Error
 }
 
-func DeteleByActivityIdAndUserId(activityId int64, userId int64) error {
+func DeleteUserActivitySign(activityId int64, userId int64) error {
 	return db.Where("activity_id = ? and user_id = ?", activityId, userId).Delete(&ActivitySign{}).Error
+}
+
+func BatchDeleteActivitySign(ids []int64) error {
+	return db.Where("id in ?", ids).Delete(&ActivitySign{}).Error
 }

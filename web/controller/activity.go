@@ -68,7 +68,22 @@ func UpdateActivityHandler(c *gin.Context) {
 
 // GetActivityHandler 获取活动详情
 func GetActivityHandler(c *gin.Context) {
-
+	idStr := c.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		ginx.ResponseError(c, ginx.ParamErr)
+	}
+	user, err := ginx.GetCurrentUser(c)
+	if err != nil {
+		ginx.ResponseError(c, ginx.UserNotExistErr)
+		return
+	}
+	activity, err := service.GetActivity(id, user)
+	if err != nil {
+		ginx.ResponseError(c, err)
+		return
+	}
+	ginx.ResponseSuccess(c, activity)
 }
 
 func GetActivitiesHandler(c *gin.Context) {
@@ -121,22 +136,113 @@ func ReadActivityHandler(c *gin.Context) {
 	ginx.ResponseSuccess(c, nil)
 }
 
-func GetActivitiesByUserHandler(context *gin.Context) {
-	
+// GetUserSignActivityHandler 分页查询当前用户报名的活动
+func GetUserSignActivityHandler(c *gin.Context) {
+	var query model.Activity
+	if err := c.ShouldBind(&query); err != nil {
+		ginx.ResponseError(c, ginx.ParamErr)
+		return
+	}
+	pageNumStr := c.DefaultQuery("pageNum", "1")
+	pageSizeStr := c.DefaultQuery("pageSize", "10")
+	pageNumInt, _ := strconv.Atoi(pageNumStr)
+	pageSizeInt, _ := strconv.Atoi(pageSizeStr)
+	user, err := ginx.GetCurrentUser(c)
+	if err != nil {
+		ginx.ResponseError(c, ginx.UserNotExistErr)
+		return
+	}
+	query.UserId = user.Id
+	list, err := service.GetUserSignActivity(&query, pageNumInt, pageSizeInt)
+	if err != nil {
+		ginx.ResponseError(c, err)
+		return
+	}
+	ginx.ResponseSuccess(c, list)
 }
 
-func GetActivitiesByLikeHandler(context *gin.Context) {
-	
+// GetUserLikeActivityHandler 分页查询当前用户点赞的博客列表
+func GetUserLikeActivityHandler(c *gin.Context) {
+	var query model.Activity
+	if err := c.ShouldBind(&query); err != nil {
+		ginx.ResponseError(c, ginx.ParamErr)
+		return
+	}
+	pageNumStr := c.DefaultQuery("pageNum", "1")
+	pageSizeStr := c.DefaultQuery("pageSize", "10")
+	pageNumInt, _ := strconv.Atoi(pageNumStr)
+	pageSizeInt, _ := strconv.Atoi(pageSizeStr)
+	user, err := ginx.GetCurrentUser(c)
+	if err != nil {
+		ginx.ResponseError(c, ginx.UserNotExistErr)
+		return
+	}
+	query.UserId = user.Id
+	list, err := service.GetUserLikeActivity(&query, pageNumInt, pageSizeInt)
+	if err != nil {
+		ginx.ResponseError(c, err)
+		return
+	}
+	ginx.ResponseSuccess(c, list)
+
 }
 
-func GetActivitiesByCollectHandler(context *gin.Context) {
-	
+// GetUserCollectActivityHandler 分页查询当前用户收藏的博客列表
+func GetUserCollectActivityHandler(c *gin.Context) {
+	var query model.Activity
+	if err := c.ShouldBind(&query); err != nil {
+		ginx.ResponseError(c, ginx.ParamErr)
+		return
+	}
+	pageNumStr := c.DefaultQuery("pageNum", "1")
+	pageSizeStr := c.DefaultQuery("pageSize", "10")
+	pageNumInt, _ := strconv.Atoi(pageNumStr)
+	pageSizeInt, _ := strconv.Atoi(pageSizeStr)
+	user, err := ginx.GetCurrentUser(c)
+	if err != nil {
+		ginx.ResponseError(c, ginx.UserNotExistErr)
+		return
+	}
+	query.UserId = user.Id
+	list, err := service.GetUserCollectActivity(&query, pageNumInt, pageSizeInt)
+	if err != nil {
+		ginx.ResponseError(c, err)
+		return
+	}
+	ginx.ResponseSuccess(c, list)
 }
 
-func GetActivitiesByCommentHandler(context *gin.Context) {
-	
+// GetUserCommentActivityHandler 分页查询当前用户评论的博客列表
+func GetUserCommentActivityHandler(c *gin.Context) {
+	var query model.Activity
+	if err := c.ShouldBind(&query); err != nil {
+		ginx.ResponseError(c, ginx.ParamErr)
+		return
+	}
+	pageNumStr := c.DefaultQuery("pageNum", "1")
+	pageSizeStr := c.DefaultQuery("pageSize", "10")
+	pageNumInt, _ := strconv.Atoi(pageNumStr)
+	pageSizeInt, _ := strconv.Atoi(pageSizeStr)
+	user, err := ginx.GetCurrentUser(c)
+	if err != nil {
+		ginx.ResponseError(c, ginx.UserNotExistErr)
+		return
+	}
+	query.UserId = user.Id
+	list, err := service.GetUserCommentActivity(&query, pageNumInt, pageSizeInt)
+	if err != nil {
+		ginx.ResponseError(c, err)
+		return
+	}
+	ginx.ResponseSuccess(c, list)
 }
 
-func GetTopActivitiesHandler(context *gin.Context) {
-	
+// GetTopActivitiesHandler 热门活动榜单
+func GetTopActivitiesHandler(c *gin.Context) {
+	list, err := service.GetTopActivities()
+	if err != nil {
+		ginx.ResponseError(c, err)
+		return
+	}
+	ginx.ResponseSuccess(c, list)
 }

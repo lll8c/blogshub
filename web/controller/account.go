@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"bloghub/domain"
+	"bloghub/model"
 	"bloghub/service"
 	"bloghub/utils/ginx"
 	"fmt"
@@ -9,7 +9,7 @@ import (
 )
 
 func LoginController(c *gin.Context) {
-	var account domain.Account
+	var account model.Account
 	if err := c.ShouldBind(&account); err != nil {
 		ginx.ResponseError(c, ginx.ParamErr)
 		return
@@ -38,7 +38,7 @@ func LoginController(c *gin.Context) {
 }
 
 func RegisterController(c *gin.Context) {
-	var account domain.Account
+	var account model.Account
 	if err := c.ShouldBind(&account); err != nil {
 		ginx.ResponseError(c, ginx.ParamErr)
 		return
@@ -57,6 +57,30 @@ func RegisterController(c *gin.Context) {
 		fmt.Println(err)
 		ginx.ResponseError(c, err)
 		return
+	}
+	ginx.ResponseSuccess(c, nil)
+}
+
+func UpdatePassword(c *gin.Context) {
+	var account model.Account
+	if err := c.ShouldBind(&account); err != nil {
+		ginx.ResponseError(c, ginx.ParamErr)
+		return
+	}
+	if account.Username == "" || account.Password == "" || account.NewPassword == "" {
+		ginx.ResponseError(c, ginx.ParamLostErr)
+		return
+	}
+	if account.Role == model.ADMIN {
+		if err := service.UpdateAdminPassword(&account); err != nil {
+			ginx.ResponseError(c, err)
+			return
+		}
+	} else if account.Role == model.USER {
+		if err := service.UpdateUserPassword(&account); err != nil {
+			ginx.ResponseError(c, err)
+			return
+		}
 	}
 	ginx.ResponseSuccess(c, nil)
 }

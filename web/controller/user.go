@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"bloghub/domain"
+	"bloghub/model"
 	"bloghub/service"
 	"bloghub/utils/ginx"
 	"encoding/json"
@@ -11,7 +11,7 @@ import (
 )
 
 func AddUserHandler(c *gin.Context) {
-	var user domain.User
+	var user model.User
 	if err := c.ShouldBind(&user); err != nil {
 		ginx.ResponseError(c, ginx.ParamErr)
 		return
@@ -56,7 +56,7 @@ func BatchDeleteUserHandler(c *gin.Context) {
 }
 
 func UpdateUserHandler(c *gin.Context) {
-	var user domain.User
+	var user model.User
 	if err := c.ShouldBind(&user); err != nil {
 		ginx.ResponseError(c, ginx.ParamErr)
 		return
@@ -83,7 +83,12 @@ func GetUserHandler(c *gin.Context) {
 }
 
 func GetUserListHandler(c *gin.Context) {
-	users, err := service.GetUserList()
+	var user model.User
+	if err := c.ShouldBind(&user); err != nil {
+		ginx.ResponseError(c, ginx.ParamErr)
+		return
+	}
+	users, err := service.GetUserList(&user)
 	if err != nil {
 		ginx.ResponseError(c, err)
 		return
@@ -93,12 +98,17 @@ func GetUserListHandler(c *gin.Context) {
 
 // GetUserByPageHandler 分页获取用户列表
 func GetUserByPageHandler(c *gin.Context) {
+	var user model.User
+	if err := c.ShouldBind(&user); err != nil {
+		ginx.ResponseError(c, ginx.ParamErr)
+		return
+	}
 	pageNumStr := c.DefaultQuery("pageNum", "1")
 	pageSizeStr := c.DefaultQuery("pageSize", "10")
 
 	pageNumInt, _ := strconv.Atoi(pageNumStr)
 	pageSizeInt, _ := strconv.Atoi(pageSizeStr)
-	users, err := service.GetUserByPage(pageNumInt, pageSizeInt)
+	users, err := service.GetUserByPage(&user, pageNumInt, pageSizeInt)
 	if err != nil {
 		ginx.ResponseError(c, err)
 		return
